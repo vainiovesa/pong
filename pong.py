@@ -152,3 +152,7 @@ def rotation(direction_vector:tuple, theta:float):
     new_x = x * c - y * s
     new_y = x * s + y * c
     return new_x, new_y
+
+if __name__ == "__main__":
+    pong = Pong()
+    pong.play()
