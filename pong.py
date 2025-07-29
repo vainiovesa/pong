@@ -17,9 +17,9 @@ class Pong:
         self.new_game()
 
     def new_game(self):
-        self.left = Paddle(5, 0, self.height / 2)
-        self.right = Paddle(5, self.width, self.height / 2)
-        self.ball = Ball(self.width / 2, self.height / 2, 1, (1, 0))
+        self.left = Paddle(1, 0, 5)
+        self.right = Paddle(self.width - 1, 0, 5)
+        self.ball = Ball(self.width / 2, self.height / 2, self.scale, (1, 0))
         pygame.display.set_caption(f"Left {self.n_left_wins} - Right {self.n_right_wins}")
 
     def draw_screen(self):
@@ -47,8 +47,18 @@ class Pong:
                     leftmove += 1
         return leftmove, rightmove
 
+    def move(self, leftmove, rightmove):
+        self.left.move(leftmove)
+        self.right.move(rightmove)
+        self.ball.move()
+
     def play(self):
-        pass
+        while True:
+            leftmove, rightmove = self.events()
+            self.move(leftmove, rightmove)
+            self.draw_screen()
+            self.clock.tick(30)
+
 
 class Ball:
     def __init__(self, x:float, y:float, r:int, v:tuple):
@@ -81,8 +91,8 @@ class Paddle:
 
     def draw(self, screen, scale):
         x, y, l, s = self.x, self.y, self.length, scale
-        x, y = x * s, y * s
-        pygame.draw.rect(screen, self.color, (x, y, x, y + l))
+        x, y, l = x * s, y * s, l * s
+        pygame.draw.rect(screen, self.color, pygame.Rect(x - (s / 2), y, s, l))
 
 def rotation(direction_vector:tuple, theta:float):
     x, y = direction_vector
