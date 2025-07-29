@@ -8,18 +8,22 @@ class Pong:
         self.n_left_wins = 0
         self.n_right_wins = 0
 
-        self.scale = 10
-        self.width = 40
-        self.height = 25
+        self.scale = 5
+        self.width = 80
+        self.height = 50
         self.screen = pygame.display.set_mode(
             (self.width * self.scale, self.height * self.scale))
 
         self.new_game()
 
     def new_game(self):
-        self.left = Paddle(1, self.height / 2, 5)
-        self.right = Paddle(self.width - 1, self.height / 2, 5)
-        self.ball = Ball(self.width / 2, self.height / 2, self.scale / 2, (1, 0))
+        self.left = Paddle(1, self.height / 2, 10)
+        self.right = Paddle(self.width - 1, self.height / 2, 10)
+        self.ball = Ball(self.width / 2, self.height / 2, self.scale, (1, 0))
+        self.rightup = False
+        self.rightdown = False
+        self.leftup = False
+        self.leftdown = False
         pygame.display.set_caption(f"{self.n_left_wins} - {self.n_right_wins}")
 
     def draw_screen(self):
@@ -31,31 +35,39 @@ class Pong:
         pygame.display.flip()
 
     def events(self):
-        leftmove, rightmove = 0, 0
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 exit()
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP:
-                    rightmove -= 1
+                    self.rightup = True
                 if event.key == pygame.K_DOWN:
-                    rightmove += 1
+                    self.rightdown = True
                 if event.key == pygame.K_w:
-                    leftmove -= 1
+                    self.leftup = True
                 if event.key == pygame.K_s:
-                    leftmove += 1
-        return leftmove, rightmove
+                    self.leftdown = True
 
-    def move(self, leftmove, rightmove):
-        if leftmove > 0 and self.left.y + self.left.length < self.height:
-            self.left.move(leftmove)
-        if leftmove < 0 and self.left.y > 0:
-            self.left.move(leftmove)
-        if rightmove > 0 and self.right.y + self.right.length < self.height:
-            self.right.move(rightmove)
-        if rightmove < 0 and self.right.y > 0:
-            self.right.move(rightmove)
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_UP:
+                    self.rightup = False
+                if event.key == pygame.K_DOWN:
+                    self.rightdown = False
+                if event.key == pygame.K_w:
+                    self.leftup = False
+                if event.key == pygame.K_s:
+                    self.leftdown = False
+
+    def move(self):
+        if self.leftdown and self.left.y + self.left.length < self.height:
+            self.left.move(1)
+        if self.leftup and self.left.y > 0:
+            self.left.move(-1)
+        if self.rightdown and self.right.y + self.right.length < self.height:
+            self.right.move(1)
+        if self.rightup and self.right.y > 0:
+            self.right.move(-1)
         self.ball.move()
 
     def bounce(self):
@@ -87,11 +99,11 @@ class Pong:
         while True:
             self.check_over()
             self.check_ceiling()
-            leftmove, rightmove = self.events()
-            self.move(leftmove, rightmove)
+            self.events()
+            self.move()
             self.bounce()
             self.draw_screen()
-            self.clock.tick(20)
+            self.clock.tick(40)
 
 
 class Ball:
