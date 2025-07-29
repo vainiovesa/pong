@@ -17,10 +17,10 @@ class Pong:
         self.new_game()
 
     def new_game(self):
-        self.left = Paddle(1, 0, 5)
-        self.right = Paddle(self.width - 1, 0, 5)
-        self.ball = Ball(self.width / 2, self.height / 2, self.scale, (1, 0))
-        pygame.display.set_caption(f"Left {self.n_left_wins} - Right {self.n_right_wins}")
+        self.left = Paddle(1, self.height / 2, 5)
+        self.right = Paddle(self.width - 1, self.height / 2, 5)
+        self.ball = Ball(self.width / 2, self.height / 2, self.scale / 2, (1, 0))
+        pygame.display.set_caption(f"{self.n_left_wins} - {self.n_right_wins}")
 
     def draw_screen(self):
         background_color = (0, 0, 0)
@@ -48,16 +48,50 @@ class Pong:
         return leftmove, rightmove
 
     def move(self, leftmove, rightmove):
-        self.left.move(leftmove)
-        self.right.move(rightmove)
+        if leftmove > 0 and self.left.y + self.left.length < self.height:
+            self.left.move(leftmove)
+        if leftmove < 0 and self.left.y > 0:
+            self.left.move(leftmove)
+        if rightmove > 0 and self.right.y + self.right.length < self.height:
+            self.right.move(rightmove)
+        if rightmove < 0 and self.right.y > 0:
+            self.right.move(rightmove)
         self.ball.move()
+
+    def bounce(self):
+        if collision(self.left, self.ball):
+            angle = calculate_angle(self.left, self.ball)
+            self.ball.x = self.left.x + 0.5
+            self.ball.bounce_x()
+            self.ball.change_direction(- angle)
+
+        if collision(self.right, self.ball):
+            angle = calculate_angle(self.right, self.ball)
+            self.ball.x = self.right.x - 0.5
+            self.ball.bounce_x()
+            self.ball.change_direction(angle)
+
+    def check_over(self):
+        if self.ball.x < 0:
+            self.n_right_wins += 1
+            self.new_game()
+        if self.ball.x > self.width:
+            self.n_left_wins += 1
+            self.new_game()
+
+    def check_ceiling(self):
+        if self.ball.y <= 0 or self.ball.y >= self.height:
+            self.ball.bounce_y()
 
     def play(self):
         while True:
+            self.check_over()
+            self.check_ceiling()
             leftmove, rightmove = self.events()
             self.move(leftmove, rightmove)
+            self.bounce()
             self.draw_screen()
-            self.clock.tick(30)
+            self.clock.tick(20)
 
 
 class Ball:
@@ -72,6 +106,14 @@ class Ball:
         v0, v1 = self.v
         self.x += v0
         self.y += v1
+
+    def bounce_x(self):
+        v0, v1 = self.v
+        self.v = - v0, v1
+
+    def bounce_y(self):
+        v0, v1 = self.v
+        self.v = v0, - v1
 
     def change_direction(self, angle:float):
         self.v = rotation(self.v, angle)
@@ -93,6 +135,16 @@ class Paddle:
         x, y, l, s = self.x, self.y, self.length, scale
         x, y, l = x * s, y * s, l * s
         pygame.draw.rect(screen, self.color, pygame.Rect(x - (s / 2), y, s, l))
+
+def collision(paddle:Paddle, ball:Ball):
+    x_col = paddle.x - 0.5 <= ball.x <= paddle.x + 0.5
+    y_col = paddle.y <= ball.y <= paddle.y + paddle.length
+    return x_col and y_col
+
+def calculate_angle(paddle:Paddle, ball:Ball):
+    coeff = ball.y - paddle.y - paddle.length / 2
+    angle = - coeff * pi / 50
+    return angle
 
 def rotation(direction_vector:tuple, theta:float):
     x, y = direction_vector
