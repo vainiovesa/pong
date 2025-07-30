@@ -26,3 +26,5 @@ Run the game!
 ```console
 $ poetry run python3 pong.py
 ```
+#### No poetry?
+[Poetry docs](https://python-poetry.org/docs/)
