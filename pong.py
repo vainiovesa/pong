@@ -1,6 +1,7 @@
 from math import sin, cos, pi
 import pygame
 
+
 class Pong:
     def __init__(self):
         pygame.init()
@@ -71,15 +72,19 @@ class Pong:
         self.ball.move()
 
     def bounce(self):
-        if collision(self.left, self.ball):
-            angle = calculate_angle(self.left, self.ball)
+        if collision(self.left, self.ball, -1):
+            coeff = calculate_coefficient(self.left, self.ball)
+            angle = - coeff * pi / 50
             self.ball.x = self.left.x + 0.5
+            self.ball.change_vf(1 + abs(coeff) / 4)
             self.ball.bounce_x()
             self.ball.change_direction(- angle)
 
-        if collision(self.right, self.ball):
-            angle = calculate_angle(self.right, self.ball)
+        if collision(self.right, self.ball, 1):
+            coeff = calculate_coefficient(self.right, self.ball)
+            angle = - coeff * pi / 50
             self.ball.x = self.right.x - 0.5
+            self.ball.change_vf(1 + abs(coeff) / 4)
             self.ball.bounce_x()
             self.ball.change_direction(angle)
 
@@ -107,17 +112,21 @@ class Pong:
 
 
 class Ball:
-    def __init__(self, x:float, y:float, r:int, v:tuple):
+    def __init__(self, x:float, y:float, r:int, v:tuple, vf:float=2):
         self.x = x
         self.y = y
         self.r = r
         self.v = v
+        self.vf = vf
         self.color = (255, 10, 10)
 
     def move(self):
         v0, v1 = self.v
-        self.x += v0
-        self.y += v1
+        self.x += v0 * self.vf
+        self.y += v1 * self.vf
+
+    def change_vf(self, new:float):
+        self.vf = new
 
     def bounce_x(self):
         v0, v1 = self.v
@@ -132,6 +141,7 @@ class Ball:
 
     def draw(self, screen, scale):
         pygame.draw.circle(screen, self.color, (self.x * scale, self.y * scale), self.r)
+
 
 class Paddle:
     def __init__(self, x:float, y:float, length:int):
@@ -148,15 +158,20 @@ class Paddle:
         x, y, l = x * s, y * s, l * s
         pygame.draw.rect(screen, self.color, pygame.Rect(x - (s / 2), y, s, l))
 
-def collision(paddle:Paddle, ball:Ball):
-    x_col = paddle.x - 0.5 <= ball.x <= paddle.x + 0.5
+
+def collision(paddle:Paddle, ball:Ball, pos:int):
+    if pos < 0:
+        x_col = ball.x <= paddle.x + 0.5
+    else:
+        x_col = paddle.x - 0.5 <= ball.x
     y_col = paddle.y <= ball.y <= paddle.y + paddle.length
     return x_col and y_col
 
-def calculate_angle(paddle:Paddle, ball:Ball):
+
+def calculate_coefficient(paddle:Paddle, ball:Ball):
     coeff = ball.y - paddle.y - paddle.length / 2
-    angle = - coeff * pi / 50
-    return angle
+    return coeff
+
 
 def rotation(direction_vector:tuple, theta:float):
     x, y = direction_vector
@@ -164,6 +179,7 @@ def rotation(direction_vector:tuple, theta:float):
     new_x = x * c - y * s
     new_y = x * s + y * c
     return new_x, new_y
+
 
 if __name__ == "__main__":
     pong = Pong()
