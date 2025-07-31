@@ -19,8 +19,7 @@ $ python3 pong.py
 
 #### If you don't have pygame installed:
 ```console
-$ poetry shell
-$ poetry install
+$ poetry install --no-root
 ```
 Run the game!
 ```console
