@@ -1,4 +1,5 @@
 from math import sin, cos, pi
+from random import choice, random
 import pygame
 
 
@@ -18,9 +19,15 @@ class Pong:
         self.new_game()
 
     def new_game(self):
-        self.left = Paddle(1, self.height / 2, 10)
-        self.right = Paddle(self.width - 1, self.height / 2, 10)
-        self.ball = Ball(self.width / 2, self.height / 2, self.scale, (1, 0))
+        paddle_length = 10
+        offset = - paddle_length / 2
+        self.left = Paddle(1, self.height / 2 + offset, paddle_length)
+        self.right = Paddle(self.width - 1, self.height / 2 + offset, paddle_length)
+
+        ballx, bally = self.width / 2, self.height / 2
+        ballr, ballv = self.scale, (choice((-1, 1)), (random() - 0.5) / 2)
+        self.ball = Ball(ballx, bally, ballr, ballv)
+
         self.rightup = False
         self.rightdown = False
         self.leftup = False
